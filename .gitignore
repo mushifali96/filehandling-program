@@ -1,0 +1,309 @@
+/*
+
+Question-01.cpp is a program from our OOP Assignment#2. In which we have to perform Login & Registration operations 
+using Classes and File Handling.
+
+Developer Information:
+Name : Mushif Ali Nawaz
+Reg# : 2487-FBAS/BSSE/F14-A
+
+
+Program Completion Date : 27-05-2015
+
+********************************************************************************************************************
+
+*/
+
+
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <conio.h>
+using namespace std;
+
+class login
+{
+public:
+	string username;
+	int password;
+
+	login() : username(""),password(0) // constructor
+	{ /*Empty Body*/ };
+
+	void input();
+};
+
+class profile
+{
+private:
+	string name,f_name,cls_name,dob;
+	int age,reg_no;
+
+public:
+	profile() : name(""),f_name(""),cls_name(""),dob(""),age(0),reg_no(0) // constructor
+	{ /*Empty Body*/ }
+
+	void input();
+	void display();
+};
+
+
+int main()
+{
+	system("color f0");
+	
+	int ch;
+	bool flag,found;
+
+	login user,temp;
+	profile data;
+
+	fstream userLogin;
+	fstream userData;
+
+	while(1) // infinite loop
+	{
+		system("cls");
+
+		cout << "\t\tMain Menu"
+			<< "\n\t1. Login"
+			<< "\n\t2. Register"
+			<< "\n\t3. Exit"
+			<< "\n\nEnter your choice : ";
+		cin >> ch;
+
+		switch(ch)
+		{
+		case 1:
+			system("cls");
+
+			user.input();
+
+			userLogin.open("All_Users.txt", ios::in | ios::binary | ios::app);
+
+			userLogin.seekg(0);
+			userLogin.read(reinterpret_cast<char *>(&temp), sizeof(login));
+
+			flag=false;
+
+			while(!userLogin.eof())
+			{
+				if(user.username==temp.username)
+				{
+					if(user.password==temp.password)
+					{
+						flag=true;
+						break;
+					}
+					else
+						break;
+				}
+				else
+					userLogin.read(reinterpret_cast<char *>(&temp), sizeof(login));
+			}
+
+			userLogin.close();
+
+			if(flag==true)
+			{
+				system("cls");
+				cout << "\tLogin Successful\t\tWelcome \"" << user.username << "\"" << endl << endl;
+				cout << "\t\t1. Read Your Profile"
+					<< "\n\t\t2. Overwrite Your Profile"
+					<< "\n\n\tEnter Your Choice : ";
+
+				cin >> ch;
+
+				switch(ch)
+				{
+				case 1:
+					system("cls");
+					userData.open(user.username+".dat", ios::binary | ios::in);
+					userData.read(reinterpret_cast<char *>(&data), sizeof(profile));
+
+					cout << "\n\t    " << user.username <<"'s DATA\n\n";
+					data.display();
+
+					userData.close();
+
+					break;
+
+				case 2:
+					userData.open(user.username+".dat", ios::binary | ios::out);
+
+					data.input();
+
+					userData.write(reinterpret_cast<char *>(&data), sizeof(profile));
+					
+					userData.close();
+
+					break;
+
+				default: cout << "\n\n Invalid Choice....";
+				}
+			}
+			else
+				cout << "\n\nLogin was Unsuccessful....";
+			break;
+
+
+
+
+		case 2:
+			system("cls");
+			cout << "For Registration :\n\n";
+
+
+// Verifying that whether a similar username already exist or not
+
+			userLogin.open("All_Users.txt", ios::in | ios::binary | ios::app);
+
+
+			while(true)
+			{
+				user.input();
+				found=false; // assigning false to bool variable
+
+				userLogin.seekg(0);
+				userLogin.read(reinterpret_cast<char *>(&temp), sizeof(login));
+
+				while(!userLogin.eof())
+				{
+					if(temp.username==user.username)
+					{
+						found=true;
+						break;
+					}
+					else
+						userLogin.read(reinterpret_cast<char *>(&temp), sizeof(login));
+				}
+
+				if(found==false)
+					break;
+				else
+					cout << "\n\nSorry !! A User with entered Username Already exists..\n\nRegister with different Username..\n\n\n\n";
+			}
+
+			userLogin.close();
+
+// Writing Login Information into file after successful Verification
+
+			userLogin.open("All_Users.txt", ios::out | ios::binary | ios::app);
+			userLogin.write(reinterpret_cast<char *>(&user), sizeof(login));
+			userLogin.close();
+
+			data.input();
+
+
+// Writing User Data into seperate file
+
+			userData.open(user.username+".dat", ios::binary | ios::out);
+			userData.write(reinterpret_cast<char *>(&data), sizeof(profile));
+			userData.close();
+
+			break;
+
+		case 3:	exit(0);
+		default: cout << "\n\nInvalid Choice...";
+		}
+
+		cout << endl << endl;
+		system("pause");
+	}
+
+	return 0;
+}
+
+void login::input()
+{
+	char ch; // to save character
+
+	cout << "Enter User Name : ";
+	cin >> username;
+
+	cout << "\nEnter Password (10000~65000) : ";
+
+	for(;;) // infinite loop
+	{
+		password=0;
+
+		while(true) // infinite loop
+		{
+			ch = _getch(); // to get the character
+
+			if( ch == 8 ) // if Backspace key is pressed. (ASCII Value is 8)
+			{
+				if( password != 0 )
+				{
+					cout << "\b \b"; // '\b' is escape sequence for Backspace.
+					password/=10; // removing last digit by dividing it by 10.
+				}
+				else
+					cout << "\a"; // beep, if there is no digit to be erased/removed.
+			}
+
+			else if( ch == 13 ) // if Enter Key is Pressed. (ASCII Value is 13)
+				break; // breaking the loop.
+
+			else if ( ch >= 48 && ch <= 57 ) // if entered character is b/w 0-9. (ASCII Value is from 48-57)
+			{
+				password = password*10 + (static_cast<int>(ch)-48); // saving that character.
+
+				cout << "*"; // displaying asterisk.
+			}
+			else
+				cout << "\a"; // beep, if anyother key is pressed.
+
+
+		} // end of infinite loop of while
+
+
+		if(password >= 10000 && password <= 65000)
+			break;
+		else
+			cout << "\n\nPassword is out of range.. i.e. (10000~65000) \n\nPlease Re-Enter : ";
+
+
+	} // end of for(;;)
+}
+
+
+
+void profile::input()
+{
+	system("cls");
+	cout << "Enter Your Data...\n";
+
+	cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+	cout << "\n\nEnter Name : ";
+	getline(cin,name);
+
+	cout << "Enter Father Name : ";
+	getline(cin,f_name);
+
+	cout << "Enter Class Name : ";
+	getline(cin,cls_name);
+
+	cout << "Enter Date of Birth (DD/MM/YYYY) : ";
+	getline(cin,dob);
+
+	cout << "Enter Age : ";
+	cin >> age;
+
+	cout << "Enter Registration Number : ";
+	cin >> reg_no;
+
+}
+
+void profile::display()
+{
+
+	cout << "\n\n\tName  =         " << name
+		<< "\n\n\tFather Name =   " << f_name
+		<< "\n\n\tClass Name =    " << cls_name
+		<< "\n\n\tDate of Birth = " << dob
+		<< "\n\n\tAge =           " << age
+		<< "\n\n\tReg# =          " << reg_no << endl;
+
+}
